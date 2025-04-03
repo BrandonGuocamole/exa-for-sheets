@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        padding: 15px;
+        background-color: #FAF7EC; /* Exa background color */
+        color: #111827; /* Exa text color */
+        margin: 0;
+        height: 100vh; /* Ensure body takes full height */
+        box-sizing: border-box;
+      }
+      h3 {
+        color: #111827; /* Exa text color */
+        margin-top: 0;
+        font-weight: 600;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        font-size: 0.9em;
+      }
+      input[type="password"] {
+        width: 100%; /* Full width */
+        padding: 10px;
+        margin-bottom: 15px; /* Increased spacing */
+        border: 1px solid #D1D5DB; /* Light grey border */
+        border-radius: 6px;
+        box-sizing: border-box; /* Include padding and border in element's total width/height */
+        background-color: #FFFFFF; /* White background for input */
+        color: #111827; /* Exa text color */
+      }
+       input[type="password"]:focus {
+        border-color: #1F40ED; /* Exa accent on focus */
+        outline: none; /* Remove default outline */
+        box-shadow: 0 0 0 2px rgba(31, 64, 237, 0.2); /* Subtle glow */
+       }
+      button {
+        padding: 10px 18px;
+        cursor: pointer;
+        background-color: #1F40ED; /* Exa accent color */
+        color: white; /* White text on button */
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: background-color 0.2s ease; /* Smooth hover effect */
+      }
+      button:hover:not(:disabled) {
+        background-color: #1a35c4; /* Slightly darker blue on hover */
+      }
+       button:disabled {
+        background-color: #9CA3AF; /* Grey out when disabled */
+        cursor: not-allowed;
+       }
+      #status {
+        margin-top: 15px;
+        font-size: 0.9em;
+        min-height: 1.2em; /* Reserve space */
+      }
+      .error {
+        color: #DC2626; /* Red for errors */
+        font-weight: 500;
+      }
+      .success {
+        color: #16A34A; /* Green for success */
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>🔑 Set Your Exa API Key</h3>
+    <label for="apiKey">API Key:</label>
+    <input type="password" id="apiKey" placeholder="Paste your Exa API key here">
+    <button id="saveButton" onclick="saveKey()">Save API Key</button>
+    <div id="status"></div>
+
+    <script>
+      const apiKeyInput = document.getElementById('apiKey');
+      const saveButton = document.getElementById('saveButton');
+      const statusDiv = document.getElementById('status');
+
+      function saveKey() {
+        const key = apiKeyInput.value;
+        if (!key) {
+            statusDiv.className = 'error';
+            statusDiv.textContent = 'Please enter an API key.';
+            return;
+        }
+
+        saveButton.disabled = true;
+        statusDiv.className = ''; // Clear previous status styles
+        statusDiv.textContent = 'Saving...';
+
+        google.script.run
+          .withSuccessHandler(() => {
+            statusDiv.className = 'success';
+            statusDiv.textContent = '✅ API Key saved!';
+            apiKeyInput.value = ''; // Clear input on success
+            saveButton.disabled = false;
+            // Optional: Automatically close the sidebar after a short delay
+            // setTimeout(() => { google.script.host.close(); }, 1500);
+          })
+          .withFailureHandler((error) => {
+            statusDiv.className = 'error';
+            // Provide a more user-friendly error, but log the technical one
+            statusDiv.textContent = '❌ Error saving key. Please try again.';
+            console.error("Save API Key Error:", error); // Log detailed error to console
+            saveButton.disabled = false;
+          })
+          .saveApiKey(key);
+      }
+
+      apiKeyInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          saveKey();
+        }
+      });
+    </script>
+  </body>
+</html>
