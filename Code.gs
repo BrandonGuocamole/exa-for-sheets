@@ -1,13 +1,13 @@
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Exa AI')
-    .addItem('Set API Key', 'showApiKeySidebar')
+    .addItem('Open Sidebar', 'showApiKeySidebar')
     .addToUi();
 }
 
 function showApiKeySidebar() {
   var html = HtmlService.createHtmlOutputFromFile('Sidebar')
-    .setTitle('Exa API Key');
+    .setTitle('Exa AI Sidebar');
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
@@ -186,7 +186,7 @@ function EXA_CONTENTS(url) {
  * Returns a vertical list of similar URLs.
  *
  * @param {string} url The URL to find similar links for (must include http/https).
- * @param {number} [numResults=5] Optional. The maximum number of similar URLs to return (1-10). Defaults to 5.
+ * @param {number} [numResults=1] Optional. The maximum number of similar URLs to return (1-10). Defaults to 1.
  * @param {string} [includeDomainsStr=""] Optional. Comma-separated list of domains to restrict results to (e.g., "example.com,anotherexample.org").
  * @param {string} [excludeDomainsStr=""] Optional. Comma-separated list of domains to exclude from results (e.g., "exclude.net,badsite.co").
  * @param {string} [includeTextStr=""] Optional. A phrase that MUST be present in the content of result pages.
@@ -356,5 +356,75 @@ function EXA_SEARCH(query, numResults, searchType) {
     }
   } catch (e) {
     return [[`❌ Script Error: ${e.message}`]];
+  }
+}
+
+/**
+ * Backend function called by the sidebar's Function Builder to test an EXA function.
+ *
+ * @param {string} functionName The name of the EXA function to test (e.g., "EXA_ANSWER").
+ * @param {object} args An object containing the arguments for the function, keyed by parameter name (e.g., { prompt: "Test prompt", includeCitations: false }).
+ * @return {any} The result from the called EXA function, or an error string.
+ */
+function testExaFunction(functionName, args) {
+  Logger.log(`testExaFunction called with: ${functionName}, Args: ${JSON.stringify(args)}`);
+
+  // Ensure API key exists before proceeding
+  const apiKey = getApiKey();
+  if (!apiKey) return "❌ No API key set. Please use 'Set API Key' in the menu.";
+
+  try {
+    switch (functionName) {
+      case "EXA_ANSWER":
+        if (!args || typeof args.prompt !== 'string' || args.prompt.trim() === "") {
+          return "❌ Missing required argument: prompt";
+        }
+        // Call EXA_ANSWER with arguments from the args object
+        return EXA_ANSWER(
+          args.prompt,
+          args.prefix || "", // Default optional args to empty string or expected default
+          args.suffix || "",
+          args.includeCitations || false
+        );
+
+      case "EXA_CONTENTS":
+        if (!args || typeof args.url !== 'string' || !args.url.startsWith('http')) {
+           return "❌ Missing or invalid required argument: url (must start with http/https)";
+        }
+        // Call EXA_CONTENTS
+        return EXA_CONTENTS(args.url);
+
+      case "EXA_FINDSIMILAR":
+        if (!args || typeof args.url !== 'string' || !args.url.startsWith('http')) {
+          return [["❌ Missing or invalid required argument: url (must start with http/https)"]]; // Return as array for consistency
+        }
+        // Call EXA_FINDSIMILAR, passing potentially null values for optional args
+        return EXA_FINDSIMILAR(
+          args.url,
+          args.numResults, // EXA_FINDSIMILAR handles undefined/null internally
+          args.includeDomainsStr,
+          args.excludeDomainsStr,
+          args.includeTextStr,
+          args.excludeTextStr
+        );
+
+       case "EXA_SEARCH":
+         if (!args || typeof args.query !== 'string' || args.query.trim() === "") {
+            return [["❌ Missing required argument: query"]]; // Return as array for consistency
+         }
+         // Call EXA_SEARCH
+         return EXA_SEARCH(
+           args.query,
+           args.numResults, // EXA_SEARCH handles undefined/null internally
+           args.searchType
+         );
+
+      default:
+        return `❌ Unknown function: ${functionName}`;
+    }
+  } catch (e) {
+    Logger.log(`Error in testExaFunction (${functionName}): ${e} - Args: ${JSON.stringify(args)}`);
+    // Return a user-friendly script error message
+    return `❌ Script Error during test: ${e.message}`;
   }
 }

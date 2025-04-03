@@ -5,17 +5,62 @@
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-        padding: 15px;
+        padding: 0; /* Remove body padding, handle spacing inside containers */
         background-color: #FAF7EC; /* Exa background color */
         color: #111827; /* Exa text color */
         margin: 0;
         height: 100vh; /* Ensure body takes full height */
         box-sizing: border-box;
+        display: flex;
+        flex-direction: column; /* Stack tabs and content vertically */
       }
+
+      .tab-container {
+        display: flex;
+        border-bottom: 1px solid #D1D5DB;
+        background-color: #F9FAFB; /* Slightly different background for tabs */
+        padding: 0 15px;
+      }
+
+      .tab-button {
+        padding: 10px 15px;
+        cursor: pointer;
+        border: none;
+        background-color: transparent;
+        border-bottom: 3px solid transparent; /* Space for active indicator */
+        margin-bottom: -1px; /* Overlap border */
+        font-weight: 500;
+        color: #6B7280; /* Inactive tab color */
+        font-size: 0.9em;
+      }
+
+      .tab-button.active {
+        color: #1F40ED; /* Exa accent for active tab */
+        border-bottom-color: #1F40ED;
+        font-weight: 600;
+      }
+
+      .tab-button:hover:not(.active) {
+        background-color: #F3F4F6; /* Subtle hover for inactive tabs */
+      }
+
+       .tab-content {
+        padding: 20px 15px; /* Padding for content areas */
+        flex-grow: 1; /* Allow content to fill remaining space */
+        overflow-y: auto; /* Add scroll if content overflows */
+       }
+
+       /* Hide inactive tab content */
+       .tab-content:not(.active) {
+         display: none;
+       }
+
+
       h3 {
         color: #111827; /* Exa text color */
         margin-top: 0;
         font-weight: 600;
+        margin-bottom: 15px; /* Spacing below heading */
       }
       label {
         display: block;
@@ -23,7 +68,7 @@
         font-weight: 500;
         font-size: 0.9em;
       }
-      input[type="password"] {
+      input[type="password"], select, input[type="text"], input[type="number"] {
         width: 100%; /* Full width */
         padding: 10px;
         margin-bottom: 15px; /* Increased spacing */
@@ -32,8 +77,9 @@
         box-sizing: border-box; /* Include padding and border in element's total width/height */
         background-color: #FFFFFF; /* White background for input */
         color: #111827; /* Exa text color */
+        font-size: 0.9em; /* Consistent font size */
       }
-       input[type="password"]:focus {
+       input[type="password"]:focus, select:focus, input[type="text"]:focus, input[type="number"]:focus {
         border-color: #1F40ED; /* Exa accent on focus */
         outline: none; /* Remove default outline */
         box-shadow: 0 0 0 2px rgba(31, 64, 237, 0.2); /* Subtle glow */
@@ -47,6 +93,8 @@
         border-radius: 6px;
         font-weight: 500;
         transition: background-color 0.2s ease; /* Smooth hover effect */
+        font-size: 0.9em; /* Consistent font size */
+        margin-top: 5px; /* Space above buttons */
       }
       button:hover:not(:disabled) {
         background-color: #1a35c4; /* Slightly darker blue on hover */
@@ -55,33 +103,198 @@
         background-color: #9CA3AF; /* Grey out when disabled */
         cursor: not-allowed;
        }
-      #status {
+      #status, #testResult {
         margin-top: 15px;
         font-size: 0.9em;
         min-height: 1.2em; /* Reserve space */
+        padding: 10px;
+        background-color: #F3F4F6;
+        border-radius: 4px;
+        border: 1px solid #E5E7EB;
+        word-wrap: break-word; /* Wrap long results */
       }
       .error {
         color: #DC2626; /* Red for errors */
         font-weight: 500;
+        border-color: #F87171;
+        background-color: #FEF2F2;
       }
       .success {
         color: #16A34A; /* Green for success */
         font-weight: 500;
+        border-color: #4ADE80;
+        background-color: #F0FDF4;
       }
+       .doc-section {
+         margin-bottom: 20px;
+         padding-bottom: 15px;
+         border-bottom: 1px dashed #D1D5DB;
+       }
+       .doc-section:last-child {
+         border-bottom: none;
+       }
+       .doc-section h4 {
+         margin: 0 0 8px 0;
+         font-weight: 600;
+         color: #1F40ED; /* Accent color for function names */
+       }
+       .doc-section p {
+         margin: 0 0 5px 0;
+         font-size: 0.85em;
+         line-height: 1.4;
+       }
+        .doc-section code {
+          background-color: #E5E7EB;
+          padding: 2px 5px;
+          border-radius: 3px;
+          font-family: monospace;
+          font-size: 0.9em;
+        }
+
+      /* Builder specific styles */
+      #builderForm label {
+        margin-top: 10px; /* Space above labels in the builder */
+      }
+       #testResult {
+         margin-top: 20px;
+         min-height: 50px; /* More space for results */
+       }
+
+
     </style>
   </head>
   <body>
-    <h3>🔑 Set Your Exa API Key</h3>
-    <label for="apiKey">API Key:</label>
-    <input type="password" id="apiKey" placeholder="Paste your Exa API key here">
-    <button id="saveButton" onclick="saveKey()">Save API Key</button>
-    <div id="status"></div>
+
+    <div class="tab-container">
+      <button class="tab-button active" onclick="openTab(event, 'apiKeyTab')">API Key</button>
+      <button class="tab-button" onclick="openTab(event, 'docsTab')">Docs</button>
+      <button class="tab-button" onclick="openTab(event, 'builderTab')">Builder</button>
+    </div>
+
+    <!-- API Key Tab -->
+    <div id="apiKeyTab" class="tab-content active">
+      <h3>🔑 Set Your Exa API Key</h3>
+      <label for="apiKey">API Key:</label>
+      <input type="password" id="apiKey" placeholder="Paste your Exa API key here">
+      <button id="saveButton" onclick="saveKey()">Save API Key</button>
+      <div id="status"></div>
+    </div>
+
+    <!-- Documentation Tab -->
+    <div id="docsTab" class="tab-content">
+      <h3>📖 Function Documentation</h3>
+
+      <div class="doc-section">
+        <h4>EXA_ANSWER</h4>
+        <p>Queries Exa /answer endpoint for an AI-generated answer based on search results.</p>
+        <p><strong>Parameters:</strong></p>
+        <p><code>prompt</code> (string, required): The main question/prompt.</p>
+        <p><code>prefix</code> (string, optional): Text added before the prompt.</p>
+        <p><code>suffix</code> (string, optional): Text added after the prompt.</p>
+        <p><code>includeCitations</code> (boolean, optional): If TRUE, includes source citations. Defaults to FALSE.</p>
+        <p><strong>Returns:</strong> The core answer or full answer with citations.</p>
+      </div>
+
+      <div class="doc-section">
+        <h4>EXA_CONTENTS</h4>
+        <p>Retrieves the text content of a given URL using Exa /contents.</p>
+        <p><strong>Parameters:</strong></p>
+        <p><code>url</code> (string, required): The full URL (starting with http/https).</p>
+        <p><strong>Returns:</strong> The main text content of the URL.</p>
+      </div>
+
+      <div class="doc-section">
+        <h4>EXA_FINDSIMILAR</h4>
+        <p>Finds URLs similar to the input URL using Exa /findSimilar.</p>
+        <p><strong>Parameters:</strong></p>
+        <p><code>url</code> (string, required): The URL to find similar links for.</p>
+        <p><code>numResults</code> (number, optional): Max results (1-10). Defaults to 5.</p>
+        <p><code>includeDomainsStr</code> (string, optional): Comma-separated domains to include.</p>
+        <p><code>excludeDomainsStr</code> (string, optional): Comma-separated domains to exclude.</p>
+        <p><code>includeTextStr</code> (string, optional): Phrase that MUST be in results.</p>
+        <p><code>excludeTextStr</code> (string, optional): Phrase that MUST NOT be in results.</p>
+        <p><strong>Returns:</strong> A vertical list of similar URLs.</p>
+      </div>
+
+      <div class="doc-section">
+        <h4>EXA_SEARCH</h4>
+        <p>Searches the web using the Exa /search endpoint.</p>
+        <p><strong>Parameters:</strong></p>
+        <p><code>query</code> (string, required): The search query.</p>
+        <p><code>numResults</code> (number, optional): Max results (1-10). Defaults to 5.</p>
+        <p><code>searchType</code> (string, optional): 'auto', 'neural', or 'keyword'. Defaults to 'auto'.</p>
+        <p><strong>Returns:</strong> A vertical list of result URLs.</p>
+      </div>
+    </div>
+
+    <!-- Function Builder Tab -->
+    <div id="builderTab" class="tab-content">
+      <h3>⚙️ Function Builder</h3>
+        <form id="builderForm">
+            <label for="functionSelect">Select Function:</label>
+            <select id="functionSelect" onchange="updateBuilderForm()">
+                <option value="">-- Select --</option>
+                <option value="EXA_ANSWER">EXA_ANSWER</option>
+                <option value="EXA_CONTENTS">EXA_CONTENTS</option>
+                <option value="EXA_FINDSIMILAR">EXA_FINDSIMILAR</option>
+                <option value="EXA_SEARCH">EXA_SEARCH</option>
+            </select>
+
+            <div id="builderInputs">
+                <!-- Input fields will be dynamically added here -->
+            </div>
+
+            <button type="button" id="testButton" onclick="testFunction()" disabled>Test Function</button>
+        </form>
+        <div id="testResult">Test results will appear here...</div>
+    </div>
+
 
     <script>
       const apiKeyInput = document.getElementById('apiKey');
       const saveButton = document.getElementById('saveButton');
       const statusDiv = document.getElementById('status');
+      const functionSelect = document.getElementById('functionSelect');
+      const builderInputsDiv = document.getElementById('builderInputs');
+      const testButton = document.getElementById('testButton');
+      const testResultDiv = document.getElementById('testResult');
 
+      // --- Tab Management ---
+      function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+          tabcontent[i].style.display = "none";
+          tabcontent[i].classList.remove("active");
+        }
+        tablinks = document.getElementsByClassName("tab-button");
+        for (i = 0; i < tablinks.length; i++) {
+          tablinks[i].classList.remove("active");
+        }
+        document.getElementById(tabName).style.display = "block";
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+
+        // Reset builder form when switching away or to the builder tab
+        if (tabName === 'builderTab') {
+            updateBuilderForm(); // Ensure form matches selection
+        } else {
+            // Optional: clear builder form/results when switching away
+            // functionSelect.value = "";
+            // builderInputsDiv.innerHTML = "";
+            // testResultDiv.textContent = "Test results will appear here...";
+            // testResultDiv.className = '';
+            // testButton.disabled = true;
+        }
+      }
+
+      // Initialize the first tab
+      document.addEventListener('DOMContentLoaded', () => {
+         openTab({currentTarget: document.querySelector('.tab-button.active')}, 'apiKeyTab');
+      });
+
+
+      // --- API Key Saving ---
       function saveKey() {
         const key = apiKeyInput.value;
         if (!key) {
@@ -119,6 +332,195 @@
           saveKey();
         }
       });
+
+      // --- Function Builder Logic ---
+      const functionParams = {
+          EXA_ANSWER: [
+              { name: 'prompt', type: 'text', required: true, label: 'Prompt (Required)' },
+              { name: 'prefix', type: 'text', required: false, label: 'Prefix (Optional)' },
+              { name: 'suffix', type: 'text', required: false, label: 'Suffix (Optional)' },
+              { name: 'includeCitations', type: 'checkbox', required: false, label: 'Include Citations (Default: False)' }
+          ],
+          EXA_CONTENTS: [
+              { name: 'url', type: 'text', required: true, label: 'URL (Required, e.g., https://example.com)' }
+          ],
+          EXA_FINDSIMILAR: [
+              { name: 'url', type: 'text', required: true, label: 'URL (Required, e.g., https://example.com)' },
+              { name: 'numResults', type: 'number', required: false, label: 'Num Results (Optional, 1-10, Default: 5)', min: 1, max: 10, default: 5 },
+              { name: 'includeDomainsStr', type: 'text', required: false, label: 'Include Domains (Optional, comma-separated)' },
+              { name: 'excludeDomainsStr', type: 'text', required: false, label: 'Exclude Domains (Optional, comma-separated)' },
+              { name: 'includeTextStr', type: 'text', required: false, label: 'Include Text (Optional phrase)' },
+              { name: 'excludeTextStr', type: 'text', required: false, label: 'Exclude Text (Optional phrase)' }
+          ],
+          EXA_SEARCH: [
+              { name: 'query', type: 'text', required: true, label: 'Search Query (Required)' },
+              { name: 'numResults', type: 'number', required: false, label: 'Num Results (Optional, 1-10, Default: 5)', min: 1, max: 10, default: 5 },
+              { name: 'searchType', type: 'select', required: false, label: 'Search Type (Optional, Default: auto)', options: ['auto', 'neural', 'keyword'], default: 'auto' }
+          ]
+      };
+
+      function updateBuilderForm() {
+          const selectedFunction = functionSelect.value;
+          builderInputsDiv.innerHTML = ''; // Clear previous inputs
+          testButton.disabled = true; // Disable button until function selected
+          testResultDiv.textContent = 'Test results will appear here...';
+          testResultDiv.className = ''; // Clear result styling
+
+          if (selectedFunction && functionParams[selectedFunction]) {
+              const params = functionParams[selectedFunction];
+              params.forEach(param => {
+                  const label = document.createElement('label');
+                  label.htmlFor = `param-${param.name}`;
+                  label.textContent = param.label || param.name;
+
+                  let input;
+                  if (param.type === 'checkbox') {
+                      input = document.createElement('input');
+                      input.type = 'checkbox';
+                      input.id = `param-${param.name}`;
+                      input.name = param.name;
+                      // Checkboxes need different layout, maybe place label after
+                      const container = document.createElement('div');
+                      container.style.display = 'flex';
+                      container.style.alignItems = 'center';
+                      container.style.marginBottom = '15px';
+                      input.style.width = 'auto'; // Don't force full width
+                      input.style.marginRight = '8px';
+                      label.style.marginBottom = '0'; // Remove bottom margin for inline label
+                      label.style.fontWeight = 'normal'; // Normal weight for checkbox label
+                      container.appendChild(input);
+                      container.appendChild(label);
+                      builderInputsDiv.appendChild(container);
+                  } else if (param.type === 'select') {
+                      input = document.createElement('select');
+                      input.id = `param-${param.name}`;
+                      input.name = param.name;
+                      if (param.options) {
+                        // Add default/placeholder option? Maybe not needed if default is set
+                        param.options.forEach(opt => {
+                             const option = document.createElement('option');
+                             option.value = opt;
+                             option.textContent = opt;
+                             if (opt === param.default) {
+                                 option.selected = true;
+                             }
+                             input.appendChild(option);
+                        });
+                      }
+                      builderInputsDiv.appendChild(label);
+                      builderInputsDiv.appendChild(input);
+
+                  } else { // text, number, etc.
+                      input = document.createElement('input');
+                      input.type = param.type;
+                      input.id = `param-${param.name}`;
+                      input.name = param.name;
+                      if (param.required) {
+                          // input.required = true; // HTML5 validation, but we'll handle in JS
+                          label.textContent += ' *'; // Indicate required
+                      }
+                      if (param.type === 'number') {
+                          if (param.min !== undefined) input.min = param.min;
+                          if (param.max !== undefined) input.max = param.max;
+                      }
+                      if (param.default !== undefined) {
+                          input.placeholder = `Default: ${param.default}`;
+                      }
+                       builderInputsDiv.appendChild(label);
+                       builderInputsDiv.appendChild(input);
+                  }
+
+              });
+              testButton.disabled = false; // Enable test button
+          }
+      }
+
+      function testFunction() {
+          const selectedFunction = functionSelect.value;
+          if (!selectedFunction) return;
+
+          const paramsConfig = functionParams[selectedFunction];
+          const args = {};
+          let missingRequired = false;
+
+          // Collect arguments from form
+          paramsConfig.forEach(param => {
+              const inputElement = document.getElementById(`param-${param.name}`);
+              if (inputElement) {
+                  let value;
+                  if (param.type === 'checkbox') {
+                      value = inputElement.checked;
+                  } else if (param.type === 'number') {
+                      value = inputElement.value === '' ? undefined : parseFloat(inputElement.value);
+                      // Basic validation for number range
+                      if (value !== undefined) {
+                          if (param.min !== undefined && value < param.min) value = param.min;
+                          if (param.max !== undefined && value > param.max) value = param.max;
+                          inputElement.value = value; // Update input field if clamped
+                      }
+                  } else { // text, select
+                      value = inputElement.value.trim();
+                  }
+
+                  // Handle empty strings for non-required fields vs. required fields
+                  if (value === '' && param.type !== 'checkbox' && !param.required) {
+                     // Treat empty optional strings/numbers as "not provided" (pass null/undefined)
+                     args[param.name] = null; // Or maybe just don't add to args? Depends on backend handler. Let's pass null.
+                  } else if (value === '' && param.type !== 'checkbox' && param.required) {
+                     missingRequired = true;
+                     // Highlight missing field (optional)
+                     inputElement.style.borderColor = '#DC2626';
+                  }
+                   else {
+                     args[param.name] = value;
+                     // Reset border color if previously marked as error
+                     if (inputElement.style) inputElement.style.borderColor = '#D1D5DB';
+                  }
+              } else if (param.required) {
+                  missingRequired = true; // Should not happen if form generation is correct
+              }
+          });
+
+          if (missingRequired) {
+              testResultDiv.className = 'error';
+              testResultDiv.textContent = '❌ Please fill in all required fields (*).';
+              return;
+          }
+
+          testButton.disabled = true;
+          testResultDiv.className = '';
+          testResultDiv.textContent = 'Testing...';
+
+          console.log("Calling testExaFunction with:", selectedFunction, args); // Debug log
+
+          google.script.run
+              .withSuccessHandler(result => {
+                  console.log("Test Result:", result);
+                  testResultDiv.className = 'success'; // Assume success unless result indicates error
+                  // Format result nicely - check if it's an error string
+                  if (typeof result === 'string' && result.startsWith('❌')) {
+                      testResultDiv.className = 'error';
+                      testResultDiv.textContent = result;
+                  } else if (Array.isArray(result)) {
+                      // Handle array results (like FIND_SIMILAR, SEARCH)
+                      // Use innerHTML and <br> for line breaks in HTML
+                      testResultDiv.innerHTML = '<strong>Results:</strong><br>' + result.map(row => (row[0] || 'N/A')).join('<br>');
+                  }
+                  else {
+                      testResultDiv.textContent = 'Result: ' + result;
+                  }
+                  testButton.disabled = false;
+              })
+              .withFailureHandler(error => {
+                  console.error("Test Function Error:", error);
+                  testResultDiv.className = 'error';
+                  testResultDiv.textContent = `❌ Script Error: ${error.message || error}`;
+                  testButton.disabled = false;
+              })
+              .testExaFunction(selectedFunction, args); // Call the backend function
+      }
+
+
     </script>
   </body>
 </html>
