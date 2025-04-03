@@ -2,11 +2,12 @@
 <html>
   <head>
     <base target="_top">
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        font-family: Verdana, Geneva, sans-serif;
         padding: 0; /* Remove body padding, handle spacing inside containers */
-        background-color: #FAF7EC; /* Exa background color */
+        background-color: #F7F3EA; /* Lighter sand color */
         color: #111827; /* Exa text color */
         margin: 0;
         height: 100vh; /* Ensure body takes full height */
@@ -15,11 +16,18 @@
         flex-direction: column; /* Stack tabs and content vertically */
       }
 
+      h3, h4, .tab-button, .doc-section h4 {
+        font-family: 'Bitter', serif;
+      }
+
       .tab-container {
         display: flex;
         border-bottom: 1px solid #D1D5DB;
-        background-color: #F9FAFB; /* Slightly different background for tabs */
+        background-color: #EFE8D9; /* Warmer background for tabs */
         padding: 0 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Subtle shadow for depth */
+        position: relative; /* For shadow positioning */
+        z-index: 10; /* Ensure shadow appears above content */
       }
 
       .tab-button {
@@ -30,18 +38,21 @@
         border-bottom: 3px solid transparent; /* Space for active indicator */
         margin-bottom: -1px; /* Overlap border */
         font-weight: 500;
-        color: #6B7280; /* Inactive tab color */
+        color: #6B7280; /* Gray for inactive */
         font-size: 0.9em;
+        transition: all 0.2s ease;
       }
 
       .tab-button.active {
-        color: #1F40ED; /* Exa accent for active tab */
+        color: #1F40ED; /* Exa accent blue for active */
         border-bottom-color: #1F40ED;
         font-weight: 600;
+        background-color: #F7F3EA; /* Match body background */
       }
 
       .tab-button:hover:not(.active) {
-        background-color: #F3F4F6; /* Subtle hover for inactive tabs */
+        background-color: #E6DFC7; /* Distinct hover color */
+        color: #4B5563; /* Darker gray on hover */
       }
 
        .tab-content {
@@ -78,11 +89,13 @@
         background-color: #FFFFFF; /* White background for input */
         color: #111827; /* Exa text color */
         font-size: 0.9em; /* Consistent font size */
+        font-family: Verdana, Geneva, sans-serif;
       }
        input[type="password"]:focus, select:focus, input[type="text"]:focus, input[type="number"]:focus {
         border-color: #1F40ED; /* Exa accent on focus */
         outline: none; /* Remove default outline */
         box-shadow: 0 0 0 2px rgba(31, 64, 237, 0.2); /* Subtle glow */
+        background-color: #FCFBF7; /* Very subtle cream background when focused */
        }
       button {
         padding: 10px 18px;
@@ -95,6 +108,8 @@
         transition: background-color 0.2s ease; /* Smooth hover effect */
         font-size: 0.9em; /* Consistent font size */
         margin-top: 5px; /* Space above buttons */
+        font-family: Verdana, Geneva, sans-serif;
+        letter-spacing: 0.3px; /* Slightly improve button text readability */
       }
       button:hover:not(:disabled) {
         background-color: #1a35c4; /* Slightly darker blue on hover */
@@ -112,17 +127,18 @@
         border-radius: 4px;
         border: 1px solid #E5E7EB;
         word-wrap: break-word; /* Wrap long results */
+        font-family: Verdana, Geneva, sans-serif;
       }
       .error {
-        color: #DC2626; /* Red for errors */
+        color: #B91C1C; /* Darker red for errors */
         font-weight: 500;
-        border-color: #F87171;
+        border-color: #FCA5A5;
         background-color: #FEF2F2;
       }
       .success {
-        color: #16A34A; /* Green for success */
+        color: #15803D; /* Darker green for success */
         font-weight: 500;
-        border-color: #4ADE80;
+        border-color: #86EFAC;
         background-color: #F0FDF4;
       }
        .doc-section {
@@ -137,11 +153,13 @@
          margin: 0 0 8px 0;
          font-weight: 600;
          color: #1F40ED; /* Accent color for function names */
+         font-family: 'Bitter', serif;
        }
        .doc-section p {
          margin: 0 0 5px 0;
          font-size: 0.85em;
          line-height: 1.4;
+         font-family: Verdana, Geneva, sans-serif;
        }
         .doc-section code {
           background-color: #E5E7EB;
@@ -154,12 +172,175 @@
       /* Builder specific styles */
       #builderForm label {
         margin-top: 10px; /* Space above labels in the builder */
+        font-family: Verdana, Geneva, sans-serif;
       }
        #testResult {
          margin-top: 20px;
          min-height: 50px; /* More space for results */
        }
 
+      /* Batch operations styles */
+      .description {
+        font-family: Verdana, Geneva, sans-serif;
+        font-size: 0.85em;
+        margin-bottom: 15px;
+        color: #4B5563;
+      }
+      
+      .batch-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .batch-buttons button {
+        width: 100%;
+      }
+      
+      .status-display {
+        margin-top: 20px;
+        padding: 12px;
+        background-color: #F7F3EA; /* Match body but slightly darker */
+        border-radius: 6px;
+        border: 1px solid #E5E7EB;
+        font-size: 0.9em;
+        min-height: 1.2em;
+        word-wrap: break-word;
+        font-family: Verdana, Geneva, sans-serif;
+      }
+
+      /* API Key Management Styles */
+      .key-section {
+        background-color: #FFFFFF;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+
+      .key-section h4 {
+        margin-top: 0;
+        margin-bottom: 12px;
+        font-size: 1em;
+        color: #374151;
+      }
+
+      .no-key-message {
+        color: #6B7280;
+        font-style: italic;
+        margin: 10px 0;
+      }
+
+      .key-info {
+        border-left: 3px solid #1F40ED;
+        padding-left: 12px;
+        margin: 10px 0;
+      }
+
+      .key-row {
+        display: flex;
+        margin-bottom: 8px;
+        font-size: 0.85em;
+      }
+
+      .key-label {
+        width: 90px;
+        color: #4B5563;
+        font-weight: 500;
+      }
+
+      .key-value {
+        flex: 1;
+        color: #111827;
+      }
+
+      .key-masked {
+        font-family: monospace;
+        letter-spacing: 1px;
+      }
+
+      .date-display {
+        color: #6B7280;
+        font-size: 0.9em;
+      }
+
+      .keys-list {
+        max-height: 150px;
+        overflow-y: auto;
+        margin-bottom: 10px;
+      }
+
+      .key-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 10px;
+        border-bottom: 1px solid #E5E7EB;
+        background-color: #F9FAFB;
+        border-radius: 4px;
+        margin-bottom: 8px;
+      }
+
+      .key-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .key-item.active {
+        background-color: #EFF6FF;
+        border-left: 3px solid #1F40ED;
+      }
+
+      .key-item-info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .key-item-name {
+        font-weight: 500;
+        font-size: 0.9em;
+        color: #374151;
+      }
+
+      .key-item-display {
+        font-family: monospace;
+        font-size: 0.8em;
+        color: #6B7280;
+      }
+
+      .key-item-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .key-action-button {
+        padding: 5px 8px;
+        font-size: 0.75em;
+        border-radius: 4px;
+      }
+
+      .set-active-button {
+        background-color: #1F40ED;
+      }
+
+      .delete-button {
+        background-color: #DC2626;
+      }
+
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      .checkbox-container input[type="checkbox"] {
+        margin-right: 8px;
+      }
+
+      .checkbox-label {
+        display: inline;
+        font-weight: normal;
+        margin-bottom: 0;
+      }
 
     </style>
   </head>
@@ -169,15 +350,68 @@
       <button class="tab-button active" onclick="openTab(event, 'apiKeyTab')">API Key</button>
       <button class="tab-button" onclick="openTab(event, 'docsTab')">Docs</button>
       <button class="tab-button" onclick="openTab(event, 'builderTab')">Builder</button>
+      <button class="tab-button" onclick="openTab(event, 'batchTab')">Batch</button>
     </div>
 
     <!-- API Key Tab -->
     <div id="apiKeyTab" class="tab-content active">
-      <h3>🔑 Set Your Exa API Key</h3>
-      <label for="apiKey">API Key:</label>
-      <input type="password" id="apiKey" placeholder="Paste your Exa API key here">
-      <button id="saveButton" onclick="saveKey()">Save API Key</button>
-      <div id="status"></div>
+      <h3>🔑 API Key Management</h3>
+      
+      <!-- Active Key Section -->
+      <div id="activeKeySection" class="key-section">
+        <h4>Active API Key</h4>
+        <div id="noActiveKey" class="no-key-message">
+          <p>No active API key set. Add a key below to get started.</p>
+        </div>
+        <div id="activeKeyInfo" class="key-info" style="display: none;">
+          <div class="key-row">
+            <span class="key-label">Name:</span>
+            <span id="activeKeyName" class="key-value"></span>
+          </div>
+          <div class="key-row">
+            <span class="key-label">Key:</span>
+            <span id="activeKeyDisplay" class="key-value key-masked"></span>
+          </div>
+          <div class="key-row">
+            <span class="key-label">Created:</span>
+            <span id="activeKeyCreated" class="key-value date-display"></span>
+          </div>
+          <div class="key-row">
+            <span class="key-label">Last Used:</span>
+            <span id="activeKeyLastUsed" class="key-value date-display"></span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Key List Section -->
+      <div id="keysListSection" class="key-section">
+        <h4>Saved API Keys</h4>
+        <div id="keysList" class="keys-list">
+          <!-- Key items will be added here dynamically -->
+          <div id="noSavedKeys" class="no-key-message">
+            <p>No saved API keys found.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Add New Key Section -->
+      <div id="addKeySection" class="key-section">
+        <h4>Add New API Key</h4>
+        <label for="keyName">Name:</label>
+        <input type="text" id="keyName" placeholder="Enter a name for this API key">
+        
+        <label for="apiKey">API Key:</label>
+        <input type="password" id="apiKey" placeholder="Paste your Exa API key here">
+        
+        <div class="checkbox-container">
+          <input type="checkbox" id="setAsActive" checked>
+          <label for="setAsActive" class="checkbox-label">Set as active key</label>
+        </div>
+        
+        <button id="saveButton" onclick="saveKey()">Save API Key</button>
+      </div>
+      
+      <div id="status" class="status-display"></div>
     </div>
 
     <!-- Documentation Tab -->
@@ -208,7 +442,7 @@
         <p>Finds URLs similar to the input URL using Exa /findSimilar.</p>
         <p><strong>Parameters:</strong></p>
         <p><code>url</code> (string, required): The URL to find similar links for.</p>
-        <p><code>numResults</code> (number, optional): Max results (1-10). Defaults to 5.</p>
+        <p><code>numResults</code> (number, optional): Max results (1-10). Defaults to 1.</p>
         <p><code>includeDomainsStr</code> (string, optional): Comma-separated domains to include.</p>
         <p><code>excludeDomainsStr</code> (string, optional): Comma-separated domains to exclude.</p>
         <p><code>includeTextStr</code> (string, optional): Phrase that MUST be in results.</p>
@@ -223,6 +457,8 @@
         <p><code>query</code> (string, required): The search query.</p>
         <p><code>numResults</code> (number, optional): Max results (1-10). Defaults to 5.</p>
         <p><code>searchType</code> (string, optional): 'auto', 'neural', or 'keyword'. Defaults to 'auto'.</p>
+        <p><code>prefix</code> (string, optional): Text added before the query.</p>
+        <p><code>suffix</code> (string, optional): Text added after the query.</p>
         <p><strong>Returns:</strong> A vertical list of result URLs.</p>
       </div>
     </div>
@@ -247,6 +483,21 @@
             <button type="button" id="testButton" onclick="testFunction()" disabled>Test Function</button>
         </form>
         <div id="testResult">Test results will appear here...</div>
+    </div>
+
+    <!-- Batch Operations Tab -->
+    <div id="batchTab" class="tab-content">
+      <h3>🔄 Batch Operations</h3>
+      <p class="description">Perform operations on selected cells containing Exa functions.</p>
+      
+      <div class="batch-buttons">
+        <button id="refreshSelected" onclick="performBatchOperation('refresh')">Refresh Selected Cells</button>
+        <button id="clearSelected" onclick="performBatchOperation('clear')">Clear Selected Results</button>
+      </div>
+      
+      <div id="batchStatus" class="status-display">
+        Select cells containing Exa functions and choose an operation.
+      </div>
     </div>
 
 
@@ -296,7 +547,16 @@
 
       // --- API Key Saving ---
       function saveKey() {
-        const key = apiKeyInput.value;
+        const keyName = document.getElementById('keyName').value.trim();
+        const key = apiKeyInput.value.trim();
+        const setAsActive = document.getElementById('setAsActive').checked;
+        
+        if (!keyName) {
+            statusDiv.className = 'error';
+            statusDiv.textContent = 'Please enter a name for the API key.';
+            return;
+        }
+        
         if (!key) {
             statusDiv.className = 'error';
             statusDiv.textContent = 'Please enter an API key.';
@@ -308,29 +568,216 @@
         statusDiv.textContent = 'Saving...';
 
         google.script.run
-          .withSuccessHandler(() => {
-            statusDiv.className = 'success';
-            statusDiv.textContent = '✅ API Key saved!';
-            apiKeyInput.value = ''; // Clear input on success
+          .withSuccessHandler((result) => {
+            if (result.success) {
+              // Clear form inputs
+              document.getElementById('keyName').value = '';
+              apiKeyInput.value = '';
+              
+              // Show success message
+              statusDiv.className = 'success';
+              statusDiv.textContent = result.message;
+              
+              // Refresh the API key display
+              loadApiKeys();
+            } else {
+              // Show error message
+              statusDiv.className = 'error';
+              statusDiv.textContent = result.message;
+            }
             saveButton.disabled = false;
-            // Optional: Automatically close the sidebar after a short delay
-            // setTimeout(() => { google.script.host.close(); }, 1500);
           })
           .withFailureHandler((error) => {
             statusDiv.className = 'error';
-            // Provide a more user-friendly error, but log the technical one
-            statusDiv.textContent = '❌ Error saving key. Please try again.';
-            console.error("Save API Key Error:", error); // Log detailed error to console
+            statusDiv.textContent = `❌ Error: ${error.message || error}`;
+            console.error("Save API Key Error:", error);
             saveButton.disabled = false;
           })
-          .saveApiKey(key);
+          .saveApiKey(keyName, key, setAsActive);
       }
 
+      // Delete API key
+      function deleteKey(keyName) {
+        if (!confirm(`Are you sure you want to delete the key "${keyName}"?`)) {
+          return;
+        }
+        
+        statusDiv.className = '';
+        statusDiv.textContent = 'Deleting...';
+        
+        google.script.run
+          .withSuccessHandler((result) => {
+            statusDiv.className = result.success ? 'success' : 'error';
+            statusDiv.textContent = result.message;
+            
+            if (result.success) {
+              loadApiKeys(); // Refresh the key list
+            }
+          })
+          .withFailureHandler((error) => {
+            statusDiv.className = 'error';
+            statusDiv.textContent = `❌ Error: ${error.message || error}`;
+            console.error("Delete API Key Error:", error);
+          })
+          .deleteApiKey(keyName);
+      }
+      
+      // Set active API key
+      function setActiveKey(keyName) {
+        statusDiv.className = '';
+        statusDiv.textContent = 'Setting active key...';
+        
+        google.script.run
+          .withSuccessHandler((result) => {
+            statusDiv.className = result.success ? 'success' : 'error';
+            statusDiv.textContent = result.message;
+            
+            if (result.success) {
+              loadApiKeys(); // Refresh the key list
+            }
+          })
+          .withFailureHandler((error) => {
+            statusDiv.className = 'error';
+            statusDiv.textContent = `❌ Error: ${error.message || error}`;
+            console.error("Set Active Key Error:", error);
+          })
+          .setActiveApiKey(keyName);
+      }
+      
+      // Format date for display
+      function formatDate(isoDateString) {
+        if (!isoDateString) return 'Never';
+        
+        try {
+          const date = new Date(isoDateString);
+          
+          // If date is today, show time only
+          const today = new Date();
+          if (date.toDateString() === today.toDateString()) {
+            return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          }
+          
+          // If date is yesterday
+          const yesterday = new Date(today);
+          yesterday.setDate(yesterday.getDate() - 1);
+          if (date.toDateString() === yesterday.toDateString()) {
+            return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          }
+          
+          // Otherwise show date and time
+          return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+          return 'Invalid date';
+        }
+      }
+      
+      // Load and display all API keys
+      function loadApiKeys() {
+        // Clear existing keys list except the "no keys" message
+        const keysList = document.getElementById('keysList');
+        const noSavedKeys = document.getElementById('noSavedKeys');
+        
+        // Remove all child elements except the no keys message
+        Array.from(keysList.children).forEach(child => {
+          if (child !== noSavedKeys) {
+            keysList.removeChild(child);
+          }
+        });
+        
+        // Get active key info and all keys
+        google.script.run
+          .withSuccessHandler((keysData) => {
+            // Display active key info
+            const activeKeyInfo = document.getElementById('activeKeyInfo');
+            const noActiveKey = document.getElementById('noActiveKey');
+            
+            if (keysData.activeKey) {
+              // Active key exists
+              noActiveKey.style.display = 'none';
+              activeKeyInfo.style.display = 'block';
+              
+              document.getElementById('activeKeyName').textContent = keysData.activeKey.name;
+              document.getElementById('activeKeyDisplay').textContent = keysData.activeKey.displayKey;
+              document.getElementById('activeKeyCreated').textContent = formatDate(keysData.activeKey.created);
+              document.getElementById('activeKeyLastUsed').textContent = formatDate(keysData.activeKey.lastUsed);
+            } else {
+              // No active key
+              noActiveKey.style.display = 'block';
+              activeKeyInfo.style.display = 'none';
+            }
+            
+            // Display saved keys
+            if (keysData.keys && Object.keys(keysData.keys).length > 0) {
+              noSavedKeys.style.display = 'none';
+              
+              // Create an item for each key
+              Object.entries(keysData.keys).forEach(([name, keyData]) => {
+                const isActive = keysData.activeKey && keysData.activeKey.name === name;
+                const keyItem = document.createElement('div');
+                keyItem.className = `key-item${isActive ? ' active' : ''}`;
+                
+                // Create key info section
+                const keyInfo = document.createElement('div');
+                keyInfo.className = 'key-item-info';
+                
+                const keyName = document.createElement('div');
+                keyName.className = 'key-item-name';
+                keyName.textContent = name + (isActive ? ' (Active)' : '');
+                
+                const keyDisplay = document.createElement('div');
+                keyDisplay.className = 'key-item-display';
+                keyDisplay.textContent = keyData.displayKey;
+                
+                keyInfo.appendChild(keyName);
+                keyInfo.appendChild(keyDisplay);
+                
+                // Create key actions section
+                const keyActions = document.createElement('div');
+                keyActions.className = 'key-item-actions';
+                
+                if (!isActive) {
+                  const setActiveBtn = document.createElement('button');
+                  setActiveBtn.className = 'key-action-button set-active-button';
+                  setActiveBtn.textContent = 'Set Active';
+                  setActiveBtn.onclick = () => setActiveKey(name);
+                  keyActions.appendChild(setActiveBtn);
+                }
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'key-action-button delete-button';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.onclick = () => deleteKey(name);
+                keyActions.appendChild(deleteBtn);
+                
+                // Add info and actions to item
+                keyItem.appendChild(keyInfo);
+                keyItem.appendChild(keyActions);
+                
+                // Add item to list
+                keysList.appendChild(keyItem);
+              });
+            } else {
+              noSavedKeys.style.display = 'block';
+            }
+          })
+          .withFailureHandler((error) => {
+            console.error("Load API Keys Error:", error);
+            statusDiv.className = 'error';
+            statusDiv.textContent = `❌ Error loading API keys: ${error.message || error}`;
+          })
+          .getAllApiKeysForUI();
+      }
+      
       apiKeyInput.addEventListener('keypress', function(event) {
         if (event.key === 'Enter') {
           event.preventDefault();
           saveKey();
         }
+      });
+      
+      // Load API keys when the tab is shown
+      document.addEventListener('DOMContentLoaded', () => {
+        loadApiKeys();
       });
 
       // --- Function Builder Logic ---
@@ -355,7 +802,9 @@
           EXA_SEARCH: [
               { name: 'query', type: 'text', required: true, label: 'Search Query (Required)' },
               { name: 'numResults', type: 'number', required: false, label: 'Num Results (Optional, 1-10, Default: 5)', min: 1, max: 10, default: 5 },
-              { name: 'searchType', type: 'select', required: false, label: 'Search Type (Optional, Default: auto)', options: ['auto', 'neural', 'keyword'], default: 'auto' }
+              { name: 'searchType', type: 'select', required: false, label: 'Search Type (Optional, Default: auto)', options: ['auto', 'neural', 'keyword'], default: 'auto' },
+              { name: 'prefix', type: 'text', required: false, label: 'Prefix (Optional)' },
+              { name: 'suffix', type: 'text', required: false, label: 'Suffix (Optional)' }
           ]
       };
 
@@ -520,6 +969,42 @@
               .testExaFunction(selectedFunction, args); // Call the backend function
       }
 
+      // --- Batch Operations Logic ---
+      function performBatchOperation(operation) {
+        const batchStatusDiv = document.getElementById('batchStatus');
+        
+        // Disable buttons during operation
+        document.getElementById('refreshSelected').disabled = true;
+        document.getElementById('clearSelected').disabled = true;
+        
+        // Update status
+        batchStatusDiv.className = '';
+        batchStatusDiv.textContent = 'Processing...';
+        
+        google.script.run
+          .withSuccessHandler(result => {
+            if (result.success) {
+              batchStatusDiv.className = 'success';
+              batchStatusDiv.textContent = `✅ ${result.message}`;
+            } else {
+              batchStatusDiv.className = 'error';
+              batchStatusDiv.textContent = `❌ ${result.message}`;
+            }
+            
+            // Re-enable buttons
+            document.getElementById('refreshSelected').disabled = false;
+            document.getElementById('clearSelected').disabled = false;
+          })
+          .withFailureHandler(error => {
+            batchStatusDiv.className = 'error';
+            batchStatusDiv.textContent = `❌ Error: ${error.message || error}`;
+            
+            // Re-enable buttons
+            document.getElementById('refreshSelected').disabled = false;
+            document.getElementById('clearSelected').disabled = false;
+          })
+          .processBatchOperation(operation);
+      }
 
     </script>
   </body>

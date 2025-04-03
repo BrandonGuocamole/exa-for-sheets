@@ -1,24 +1,228 @@
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Exa AI')
-    .addItem('Open Sidebar', 'showApiKeySidebar')
+    .addItem('Open Sidebar', 'showSidebar')
     .addToUi();
 }
 
-function showApiKeySidebar() {
+function showSidebar() {
   var html = HtmlService.createHtmlOutputFromFile('Sidebar')
-    .setTitle('Exa AI Sidebar');
+    .setTitle('Exa AI Dashboard');
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
-function saveApiKey(key) {
-  PropertiesService.getUserProperties().setProperty('EXA_API_KEY', key);
+/**
+ * Retrieves all stored API keys
+ * @return {Object} Object containing all saved API keys and metadata
+ */
+function getAllApiKeys() {
+  const keysJson = PropertiesService.getUserProperties().getProperty('EXA_API_KEYS');
+  if (!keysJson) {
+    return { keys: {}, activeKeyName: null };
+  }
+  
+  try {
+    return JSON.parse(keysJson);
+  } catch (e) {
+    // If there's an error parsing the JSON, return empty structure
+    return { keys: {}, activeKeyName: null };
+  }
 }
 
+/**
+ * Saves API keys data to UserProperties
+ * @param {Object} keysData Object containing all keys and the active key name
+ */
+function saveAllApiKeys(keysData) {
+  PropertiesService.getUserProperties().setProperty('EXA_API_KEYS', JSON.stringify(keysData));
+}
+
+/**
+ * Saves a new API key with a name
+ * @param {string} name A friendly name for the API key
+ * @param {string} key The Exa API key to save
+ * @param {boolean} setActive Whether to set this key as the active key
+ * @return {Object} Status object with success flag and message
+ */
+function saveApiKey(name, key, setActive = true) {
+  if (!name || !key) {
+    return { 
+      success: false, 
+      message: 'Both name and API key are required.'
+    };
+  }
+  
+  // Get all existing keys
+  const keysData = getAllApiKeys();
+  
+  // Check if a key with this name already exists
+  if (keysData.keys[name]) {
+    return { 
+      success: false, 
+      message: `A key named "${name}" already exists. Choose a different name.`
+    };
+  }
+  
+  // Add the new key with metadata
+  const now = new Date().toISOString();
+  keysData.keys[name] = {
+    key: key,  // Store the actual API key
+    created: now,
+    lastUsed: now,
+    // First few and last few characters for display, rest is masked
+    displayKey: `${key.substring(0, 4)}...${key.substring(key.length - 4)}`
+  };
+  
+  // Set as active key if requested or if it's the only key
+  if (setActive || !keysData.activeKeyName) {
+    keysData.activeKeyName = name;
+  }
+  
+  // Save back to properties
+  saveAllApiKeys(keysData);
+  
+  return { 
+    success: true, 
+    message: `Key "${name}" saved successfully${setActive ? ' and set as active' : ''}.`
+  };
+}
+
+/**
+ * Deletes an API key by name
+ * @param {string} name The name of the key to delete
+ * @return {Object} Status object with success flag and message
+ */
+function deleteApiKey(name) {
+  const keysData = getAllApiKeys();
+  
+  if (!keysData.keys[name]) {
+    return { 
+      success: false, 
+      message: `Key "${name}" not found.`
+    };
+  }
+  
+  // Delete the key
+  delete keysData.keys[name];
+  
+  // If we deleted the active key, set a new active key or clear it
+  if (keysData.activeKeyName === name) {
+    const remainingKeys = Object.keys(keysData.keys);
+    keysData.activeKeyName = remainingKeys.length > 0 ? remainingKeys[0] : null;
+  }
+  
+  // Save the changes
+  saveAllApiKeys(keysData);
+  
+  return { 
+    success: true, 
+    message: `Key "${name}" deleted successfully.`
+  };
+}
+
+/**
+ * Sets the active API key by name
+ * @param {string} name The name of the key to set as active
+ * @return {Object} Status object with success flag and message
+ */
+function setActiveApiKey(name) {
+  const keysData = getAllApiKeys();
+  
+  if (!keysData.keys[name]) {
+    return { 
+      success: false, 
+      message: `Key "${name}" not found.`
+    };
+  }
+  
+  // Set the active key
+  keysData.activeKeyName = name;
+  
+  // Update last used timestamp
+  keysData.keys[name].lastUsed = new Date().toISOString();
+  
+  // Save the changes
+  saveAllApiKeys(keysData);
+  
+  return { 
+    success: true, 
+    message: `Key "${name}" is now active.`
+  };
+}
+
+/**
+ * Gets the currently active API key value for use in API calls
+ * @return {string|null} The active API key or null if no key is set
+ */
 function getApiKey() {
-  return PropertiesService.getUserProperties().getProperty('EXA_API_KEY');
+  const keysData = getAllApiKeys();
+  
+  if (!keysData.activeKeyName || !keysData.keys[keysData.activeKeyName]) {
+    return null;
+  }
+  
+  // Update last used timestamp
+  keysData.keys[keysData.activeKeyName].lastUsed = new Date().toISOString();
+  saveAllApiKeys(keysData);
+  
+  return keysData.keys[keysData.activeKeyName].key;
 }
 
+/**
+ * Gets information about the active key for display in UI
+ * @return {Object} Object with active key info or null if no active key
+ */
+function getActiveKeyInfo() {
+  const keysData = getAllApiKeys();
+  
+  if (!keysData.activeKeyName || !keysData.keys[keysData.activeKeyName]) {
+    return null;
+  }
+  
+  const activeKey = keysData.keys[keysData.activeKeyName];
+  return {
+    name: keysData.activeKeyName,
+    displayKey: activeKey.displayKey,
+    created: activeKey.created,
+    lastUsed: activeKey.lastUsed
+  };
+}
+
+/**
+ * Helper function that formats API keys data for display in the UI
+ * @return {Object} Object with activeKey and keys properties
+ */
+function getAllApiKeysForUI() {
+  const keysData = getAllApiKeys();
+  const result = {
+    keys: {},
+    activeKey: null
+  };
+  
+  // Process each key to create the UI representation
+  if (keysData && keysData.keys) {
+    Object.entries(keysData.keys).forEach(([name, keyData]) => {
+      result.keys[name] = {
+        displayKey: keyData.displayKey,
+        created: keyData.created,
+        lastUsed: keyData.lastUsed
+      };
+    });
+  }
+  
+  // Set the active key info
+  if (keysData.activeKeyName && keysData.keys[keysData.activeKeyName]) {
+    const activeKey = keysData.keys[keysData.activeKeyName];
+    result.activeKey = {
+      name: keysData.activeKeyName,
+      displayKey: activeKey.displayKey,
+      created: activeKey.created,
+      lastUsed: activeKey.lastUsed
+    };
+  }
+  
+  return result;
+}
 
 /**
  * Queries the Exa /answer endpoint to provide an AI-generated answer based on search results.
@@ -206,7 +410,7 @@ function EXA_FINDSIMILAR(url, numResults, includeDomainsStr, excludeDomainsStr, 
   // Validate and set numResults (sensible default and limits)
   const count = (typeof numResults === 'number' && numResults >= 1 && numResults <= 10)
                 ? Math.floor(numResults)
-                : 5; // Default to 5 if invalid, NaN, or outside 1-10 range
+                : 1; // Default to 1 if invalid, NaN, or outside 1-10 range
 
   // Process domain lists (comma-separated string to array)
   const processDomains = (domainStr) => {
@@ -303,16 +507,21 @@ function EXA_FINDSIMILAR(url, numResults, includeDomainsStr, excludeDomainsStr, 
  * @param {string} query The search query.
  * @param {number} [numResults=5] Optional. The maximum number of result URLs to return. Defaults to 5.
  * @param {string} [searchType="auto"] Optional. The type of search ('auto', 'neural', 'keyword'). Defaults to 'auto'.
+ * @param {string} [prefix=""] Optional. Text to add before the main query.
+ * @param {string} [suffix=""] Optional. Text to add after the main query.
  * @return {string[]} An array of result URLs or a single cell error message.
  * @customfunction
  */
-function EXA_SEARCH(query, numResults, searchType) {
+function EXA_SEARCH(query, numResults, searchType, prefix, suffix) {
   const apiKey = getApiKey();
   if (!apiKey) return [["❌ No API key set. Please use 'Set API Key' in the menu."]];
 
   if (!query || typeof query !== 'string') {
     return [["❌ Please provide a valid search query."]];
   }
+
+  // Process the query with optional prefix and suffix
+  const finalQuery = `${prefix || ''} ${query} ${suffix || ''}`.trim();
 
   const count = (typeof numResults === 'number' && numResults > 0 && numResults <= 10) ? Math.floor(numResults) : 5; // Default to 5, max 10 for free tier
   const type = (searchType && ['auto', 'neural', 'keyword'].includes(searchType)) ? searchType : 'auto'; // Default to 'auto'
@@ -322,7 +531,7 @@ function EXA_SEARCH(query, numResults, searchType) {
       method: "post",
       contentType: "application/json",
       payload: JSON.stringify({
-        query: query,
+        query: finalQuery,
         numResults: count,
         type: type,
         useAutoprompt: (type !== 'keyword') // Enable autoprompt for neural/auto by default
@@ -416,7 +625,9 @@ function testExaFunction(functionName, args) {
          return EXA_SEARCH(
            args.query,
            args.numResults, // EXA_SEARCH handles undefined/null internally
-           args.searchType
+           args.searchType,
+           args.prefix,
+           args.suffix
          );
 
       default:
@@ -426,5 +637,86 @@ function testExaFunction(functionName, args) {
     Logger.log(`Error in testExaFunction (${functionName}): ${e} - Args: ${JSON.stringify(args)}`);
     // Return a user-friendly script error message
     return `❌ Script Error during test: ${e.message}`;
+  }
+}
+
+/**
+ * Processes batch operations on selected cells containing Exa functions.
+ * Supported operations: refresh (recalculate cells), clear (clear values)
+ * 
+ * @param {string} operation The operation to perform ('refresh' or 'clear')
+ * @return {Object} Result object with success flag and message
+ */
+function processBatchOperation(operation) {
+  try {
+    // Get active spreadsheet and current selection
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const selection = ss.getActiveSheet().getActiveRange();
+    
+    if (!selection) {
+      return { 
+        success: false, 
+        message: 'No cells selected. Please select cells containing Exa functions.'
+      };
+    }
+    
+    // Get formulas from the selection
+    const formulas = selection.getFormulas();
+    
+    // Track counts for reporting
+    let totalProcessed = 0;
+    let exaCellsAffected = 0;
+    
+    // Process each cell in the selection
+    for (let row = 0; row < formulas.length; row++) {
+      for (let col = 0; col < formulas[row].length; col++) {
+        const formula = formulas[row][col];
+        totalProcessed++;
+        
+        // Check if this is an Exa formula
+        if (formula && formula.toUpperCase().match(/^=EXA_/)) {
+          const cell = selection.getCell(row + 1, col + 1);
+          
+          if (operation === 'refresh') {
+            // Store the formula, clear the cell, then reapply to force recalculation
+            const tempFormula = formula;
+            // First set to a temporary value (empty string) then back to the original formula
+            // This forces Google Sheets to recalculate the formula
+            cell.setFormula('');
+            SpreadsheetApp.flush();
+            cell.setFormula(tempFormula);
+            exaCellsAffected++;
+          } 
+          else if (operation === 'clear') {
+            // Just clear the content, leaving the formula
+            cell.clearContent();
+            exaCellsAffected++;
+          }
+        }
+      }
+    }
+    
+    // Force recalculation when refreshing
+    if (operation === 'refresh' && exaCellsAffected > 0) {
+      SpreadsheetApp.flush();
+    }
+    
+    // Generate result message
+    let message;
+    if (exaCellsAffected === 0) {
+      message = `No Exa functions found in the ${totalProcessed} selected cell(s).`;
+      return { success: false, message: message };
+    } else {
+      const actionText = operation === 'refresh' ? 'refreshed' : 'cleared';
+      message = `Successfully ${actionText} ${exaCellsAffected} cell(s) with Exa functions.`;
+      return { success: true, message: message };
+    }
+    
+  } catch (e) {
+    Logger.log(`Error in processBatchOperation (${operation}): ${e}`);
+    return { 
+      success: false, 
+      message: `Operation failed: ${e.message}`
+    };
   }
 }
