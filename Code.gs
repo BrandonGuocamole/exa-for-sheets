@@ -2,6 +2,8 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Exa AI')
     .addItem('Open Sidebar', 'showSidebar')
+    .addSeparator()
+    .addItem('About/Help', 'showAbout')
     .addToUi();
 }
 
@@ -9,6 +11,23 @@ function showSidebar() {
   var html = HtmlService.createHtmlOutputFromFile('Sidebar')
     .setTitle('Exa AI Dashboard');
   SpreadsheetApp.getUi().showSidebar(html);
+}
+
+function showAbout() {
+  var ui = SpreadsheetApp.getUi();
+  var message = 'Exa AI for Google Sheets\n\n' +
+                'Version: 1.0.0\n\n' +
+                'This add-on provides powerful AI-driven search and analysis capabilities using the Exa API.\n\n' +
+                'Key Features:\n' +
+                '• EXA_ANSWER: Generate AI answers from web searches\n' +
+                '• EXA_SEARCH: Perform web searches\n' +
+                '• EXA_CONTENTS: Extract content from URLs\n' +
+                '• EXA_FINDSIMILAR: Find similar web pages\n\n' +
+                'For detailed documentation and support, open the sidebar and navigate to the Docs tab.\n\n' +
+                'Visit https://exa.ai for more information about the Exa API.\n\n' +
+                'Visit https://github.com/BrandonGuocamole/exa-for-sheets the full project repository.';
+  
+  ui.alert('About Exa AI', message, ui.ButtonSet.OK);
 }
 
 /**
@@ -505,7 +524,7 @@ function EXA_FINDSIMILAR(url, numResults, includeDomainsStr, excludeDomainsStr, 
  * Returns a vertical list of result URLs.
  *
  * @param {string} query The search query.
- * @param {number} [numResults=5] Optional. The maximum number of result URLs to return. Defaults to 5.
+ * @param {number} [numResults=1] Optional. The maximum number of result URLs to return. Defaults to 1.
  * @param {string} [searchType="auto"] Optional. The type of search ('auto', 'neural', 'keyword'). Defaults to 'auto'.
  * @param {string} [prefix=""] Optional. Text to add before the main query.
  * @param {string} [suffix=""] Optional. Text to add after the main query.
@@ -523,7 +542,7 @@ function EXA_SEARCH(query, numResults, searchType, prefix, suffix) {
   // Process the query with optional prefix and suffix
   const finalQuery = `${prefix || ''} ${query} ${suffix || ''}`.trim();
 
-  const count = (typeof numResults === 'number' && numResults > 0 && numResults <= 10) ? Math.floor(numResults) : 5; // Default to 5, max 10 for free tier
+  const count = (typeof numResults === 'number' && numResults > 0 && numResults <= 10) ? Math.floor(numResults) : 1; // Default to 1, max 10 for free tier
   const type = (searchType && ['auto', 'neural', 'keyword'].includes(searchType)) ? searchType : 'auto'; // Default to 'auto'
 
   try {
